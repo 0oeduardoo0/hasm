@@ -1,0 +1,425 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    comment
+
+Grammar
+
+Rule 0     S' -> program
+Rule 1     program -> definitions procedures
+Rule 2     procedures -> procedure procedures
+Rule 3     procedures -> empty
+Rule 4     procedure -> id instruc_end lkey instruc_end instructions rkey instruc_end
+Rule 5     instructions -> instruc instructions
+Rule 6     instructions -> empty
+Rule 7     instruc -> id operands instruc_end
+Rule 8     definitions -> definition definitions
+Rule 9     definitions -> empty
+Rule 10    definition -> point id operands instruc_end
+Rule 11    operands -> operand comma operand
+Rule 12    operands -> operand
+Rule 13    operands -> empty
+Rule 14    operand -> id
+Rule 15    operand -> integer
+Rule 16    operand -> float
+Rule 17    operand -> string
+Rule 18    instruc_end -> newline
+Rule 19    empty -> <empty>
+
+Terminals, with rules where they appear
+
+comma                : 11
+comment              : 
+error                : 
+float                : 16
+id                   : 4 7 10 14
+integer              : 15
+lkey                 : 4
+newline              : 18
+point                : 10
+rkey                 : 4
+string               : 17
+
+Nonterminals, with rules where they appear
+
+definition           : 8
+definitions          : 1 8
+empty                : 3 6 9 13
+instruc              : 5
+instruc_end          : 4 4 4 7 10
+instructions         : 4 5
+operand              : 11 11 12
+operands             : 7 10
+procedure            : 2
+procedures           : 1 2
+program              : 0
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . program
+    (1) program -> . definitions procedures
+    (8) definitions -> . definition definitions
+    (9) definitions -> . empty
+    (10) definition -> . point id operands instruc_end
+    (19) empty -> .
+
+    point           shift and go to state 2
+    id              reduce using rule 19 (empty -> .)
+    $end            reduce using rule 19 (empty -> .)
+
+    definition                     shift and go to state 1
+    program                        shift and go to state 3
+    definitions                    shift and go to state 4
+    empty                          shift and go to state 5
+
+state 1
+
+    (8) definitions -> definition . definitions
+    (8) definitions -> . definition definitions
+    (9) definitions -> . empty
+    (10) definition -> . point id operands instruc_end
+    (19) empty -> .
+
+    point           shift and go to state 2
+    id              reduce using rule 19 (empty -> .)
+    $end            reduce using rule 19 (empty -> .)
+
+    definition                     shift and go to state 1
+    empty                          shift and go to state 5
+    definitions                    shift and go to state 6
+
+state 2
+
+    (10) definition -> point . id operands instruc_end
+
+    id              shift and go to state 7
+
+
+state 3
+
+    (0) S' -> program .
+
+
+
+state 4
+
+    (1) program -> definitions . procedures
+    (2) procedures -> . procedure procedures
+    (3) procedures -> . empty
+    (4) procedure -> . id instruc_end lkey instruc_end instructions rkey instruc_end
+    (19) empty -> .
+
+    id              shift and go to state 10
+    $end            reduce using rule 19 (empty -> .)
+
+    procedure                      shift and go to state 8
+    procedures                     shift and go to state 9
+    empty                          shift and go to state 11
+
+state 5
+
+    (9) definitions -> empty .
+
+    id              reduce using rule 9 (definitions -> empty .)
+    $end            reduce using rule 9 (definitions -> empty .)
+
+
+state 6
+
+    (8) definitions -> definition definitions .
+
+    id              reduce using rule 8 (definitions -> definition definitions .)
+    $end            reduce using rule 8 (definitions -> definition definitions .)
+
+
+state 7
+
+    (10) definition -> point id . operands instruc_end
+    (11) operands -> . operand comma operand
+    (12) operands -> . operand
+    (13) operands -> . empty
+    (14) operand -> . id
+    (15) operand -> . integer
+    (16) operand -> . float
+    (17) operand -> . string
+    (19) empty -> .
+
+    id              shift and go to state 17
+    integer         shift and go to state 16
+    float           shift and go to state 12
+    string          shift and go to state 13
+    newline         reduce using rule 19 (empty -> .)
+
+    operand                        shift and go to state 15
+    empty                          shift and go to state 18
+    operands                       shift and go to state 14
+
+state 8
+
+    (2) procedures -> procedure . procedures
+    (2) procedures -> . procedure procedures
+    (3) procedures -> . empty
+    (4) procedure -> . id instruc_end lkey instruc_end instructions rkey instruc_end
+    (19) empty -> .
+
+    id              shift and go to state 10
+    $end            reduce using rule 19 (empty -> .)
+
+    procedures                     shift and go to state 19
+    empty                          shift and go to state 11
+    procedure                      shift and go to state 8
+
+state 9
+
+    (1) program -> definitions procedures .
+
+    $end            reduce using rule 1 (program -> definitions procedures .)
+
+
+state 10
+
+    (4) procedure -> id . instruc_end lkey instruc_end instructions rkey instruc_end
+    (18) instruc_end -> . newline
+
+    newline         shift and go to state 20
+
+    instruc_end                    shift and go to state 21
+
+state 11
+
+    (3) procedures -> empty .
+
+    $end            reduce using rule 3 (procedures -> empty .)
+
+
+state 12
+
+    (16) operand -> float .
+
+    comma           reduce using rule 16 (operand -> float .)
+    newline         reduce using rule 16 (operand -> float .)
+
+
+state 13
+
+    (17) operand -> string .
+
+    comma           reduce using rule 17 (operand -> string .)
+    newline         reduce using rule 17 (operand -> string .)
+
+
+state 14
+
+    (10) definition -> point id operands . instruc_end
+    (18) instruc_end -> . newline
+
+    newline         shift and go to state 20
+
+    instruc_end                    shift and go to state 22
+
+state 15
+
+    (11) operands -> operand . comma operand
+    (12) operands -> operand .
+
+    comma           shift and go to state 23
+    newline         reduce using rule 12 (operands -> operand .)
+
+
+state 16
+
+    (15) operand -> integer .
+
+    comma           reduce using rule 15 (operand -> integer .)
+    newline         reduce using rule 15 (operand -> integer .)
+
+
+state 17
+
+    (14) operand -> id .
+
+    comma           reduce using rule 14 (operand -> id .)
+    newline         reduce using rule 14 (operand -> id .)
+
+
+state 18
+
+    (13) operands -> empty .
+
+    newline         reduce using rule 13 (operands -> empty .)
+
+
+state 19
+
+    (2) procedures -> procedure procedures .
+
+    $end            reduce using rule 2 (procedures -> procedure procedures .)
+
+
+state 20
+
+    (18) instruc_end -> newline .
+
+    lkey            reduce using rule 18 (instruc_end -> newline .)
+    id              reduce using rule 18 (instruc_end -> newline .)
+    $end            reduce using rule 18 (instruc_end -> newline .)
+    rkey            reduce using rule 18 (instruc_end -> newline .)
+    point           reduce using rule 18 (instruc_end -> newline .)
+
+
+state 21
+
+    (4) procedure -> id instruc_end . lkey instruc_end instructions rkey instruc_end
+
+    lkey            shift and go to state 24
+
+
+state 22
+
+    (10) definition -> point id operands instruc_end .
+
+    point           reduce using rule 10 (definition -> point id operands instruc_end .)
+    id              reduce using rule 10 (definition -> point id operands instruc_end .)
+    $end            reduce using rule 10 (definition -> point id operands instruc_end .)
+
+
+state 23
+
+    (11) operands -> operand comma . operand
+    (14) operand -> . id
+    (15) operand -> . integer
+    (16) operand -> . float
+    (17) operand -> . string
+
+    id              shift and go to state 17
+    integer         shift and go to state 16
+    float           shift and go to state 12
+    string          shift and go to state 13
+
+    operand                        shift and go to state 25
+
+state 24
+
+    (4) procedure -> id instruc_end lkey . instruc_end instructions rkey instruc_end
+    (18) instruc_end -> . newline
+
+    newline         shift and go to state 20
+
+    instruc_end                    shift and go to state 26
+
+state 25
+
+    (11) operands -> operand comma operand .
+
+    newline         reduce using rule 11 (operands -> operand comma operand .)
+
+
+state 26
+
+    (4) procedure -> id instruc_end lkey instruc_end . instructions rkey instruc_end
+    (5) instructions -> . instruc instructions
+    (6) instructions -> . empty
+    (7) instruc -> . id operands instruc_end
+    (19) empty -> .
+
+    id              shift and go to state 27
+    rkey            reduce using rule 19 (empty -> .)
+
+    instruc                        shift and go to state 28
+    empty                          shift and go to state 29
+    instructions                   shift and go to state 30
+
+state 27
+
+    (7) instruc -> id . operands instruc_end
+    (11) operands -> . operand comma operand
+    (12) operands -> . operand
+    (13) operands -> . empty
+    (14) operand -> . id
+    (15) operand -> . integer
+    (16) operand -> . float
+    (17) operand -> . string
+    (19) empty -> .
+
+    id              shift and go to state 17
+    integer         shift and go to state 16
+    float           shift and go to state 12
+    string          shift and go to state 13
+    newline         reduce using rule 19 (empty -> .)
+
+    operand                        shift and go to state 15
+    empty                          shift and go to state 18
+    operands                       shift and go to state 31
+
+state 28
+
+    (5) instructions -> instruc . instructions
+    (5) instructions -> . instruc instructions
+    (6) instructions -> . empty
+    (7) instruc -> . id operands instruc_end
+    (19) empty -> .
+
+    id              shift and go to state 27
+    rkey            reduce using rule 19 (empty -> .)
+
+    instruc                        shift and go to state 28
+    empty                          shift and go to state 29
+    instructions                   shift and go to state 32
+
+state 29
+
+    (6) instructions -> empty .
+
+    rkey            reduce using rule 6 (instructions -> empty .)
+
+
+state 30
+
+    (4) procedure -> id instruc_end lkey instruc_end instructions . rkey instruc_end
+
+    rkey            shift and go to state 33
+
+
+state 31
+
+    (7) instruc -> id operands . instruc_end
+    (18) instruc_end -> . newline
+
+    newline         shift and go to state 20
+
+    instruc_end                    shift and go to state 34
+
+state 32
+
+    (5) instructions -> instruc instructions .
+
+    rkey            reduce using rule 5 (instructions -> instruc instructions .)
+
+
+state 33
+
+    (4) procedure -> id instruc_end lkey instruc_end instructions rkey . instruc_end
+    (18) instruc_end -> . newline
+
+    newline         shift and go to state 20
+
+    instruc_end                    shift and go to state 35
+
+state 34
+
+    (7) instruc -> id operands instruc_end .
+
+    id              reduce using rule 7 (instruc -> id operands instruc_end .)
+    rkey            reduce using rule 7 (instruc -> id operands instruc_end .)
+
+
+state 35
+
+    (4) procedure -> id instruc_end lkey instruc_end instructions rkey instruc_end .
+
+    id              reduce using rule 4 (procedure -> id instruc_end lkey instruc_end instructions rkey instruc_end .)
+    $end            reduce using rule 4 (procedure -> id instruc_end lkey instruc_end instructions rkey instruc_end .)
+
