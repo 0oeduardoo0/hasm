@@ -1,31 +1,27 @@
+import sys
 import ply.yacc as yacc
 from lexer import tokens
 
 program = {
-     "procs": []
-   , "defs": []
+     "procs": {}
+   , "headers": []
 }
 
 instructions = []
 
 def p_program(p):
-   """program : definitions procedures"""
+   """program : headers procedures"""
 
 def p_procedures(p):
    """procedures : procedure procedures
                  | empty"""
 
 def p_procedure(p):
-   """procedure : id instruc_end lkey instruc_end instructions rkey instruc_end"""
+   """procedure : id lkey instructions rkey"""
 
    global instructions
 
-   proc = {
-        "name": p[1]
-      ,"instructions": instructions
-   }
-
-   program["procs"].append(proc)
+   program["procs"][p[1]] = instructions
    instructions = []
 
 def p_instructions(p):
@@ -33,28 +29,30 @@ def p_instructions(p):
                    | empty"""
 
 def p_instruc(p):
-   """instruc : id operands instruc_end"""
+   """instruc : id operands point_comma"""
    
    instruc = {
         "name": p[1]
       , "operands": p[2]
+      , "lineno": p.lexer.lineno - 1
    }
 
    instructions.append(instruc)
 
 def p_definitions(p):
-   """definitions : definition definitions
+   """headers : header headers
                   | empty"""
 
 def p_definition(p):
-   """definition : point id operands instruc_end"""
+   """header : point id operands point_comma"""
    
-   definition = {
+   header = {
         "name": p[2]
       , "operands": p[3]
+      , "lineno": p.lexer.lineno
    }
 
-   program["defs"].append(definition)
+   program["headers"].append(header)
 
 def p_operands_double(p):
    """operands : operand comma operand"""
@@ -97,25 +95,46 @@ def p_operand_string(p):
    
    p[0] = {
         "type": "string"
-      , "value": p[1]
+      , "value": p[1].replace("\"","")
    }
 
-def p_intruct_end(p):
-   """instruc_end : newline"""
-   p[0] = p[1]
+def p_operand_array_pointer(p):
+   """operand : lbrack id comma integer rbrack"""
    
-   p.lexer.lineno += len(p[1])
+   p[0] = {
+        "type": "array_pointer"
+      , "value": p[2]
+      , "index": int(p[4])
+   }
+
+def p_operand_array_with_lenght(p):
+   """operand : lbrack integer rbrack"""
+   
+   p[0] = {
+        "type": "array"
+      , "value": [None] * int(p[2])
+   }
+
+def p_operand_array(p):
+   """operand : lbrack rbrack"""
+   
+   p[0] = {
+        "type": "array"
+      , "value": []
+   }
 
 def p_empty(p):
    """empty : """
    pass
 
-#def p_error(p):
-#   print "Error de sintaxis"
+def p_error(p):
+   print "HASM 0.1"
+   print "Fatal: sintax error at line %s unexpected t_%s '%s'" % (p.lexer.lineno, p.type, p.value)
+   sys.exit()
 
 parser = yacc.yacc()
 
 def parse_code(code):
-
+   code += "\n"
    result = parser.parse(code)
    return program

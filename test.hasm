@@ -1,0 +1,15 @@
+pedir_nombre
+{
+   inp px, "Cual es tu nombre? ";
+}
+
+imprimir_saludo
+{
+   out "Hola \$, mucho gusto! \n", px;
+}
+
+main
+{
+   call pedir_nombre;
+   call imprimir_saludo;
+}

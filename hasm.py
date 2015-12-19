@@ -1,5 +1,7 @@
 import sys
 from core.sintax import parse_code
+from vm import vm
+from core.lexer import parse_tokens
 
 try:
 
@@ -16,8 +18,13 @@ source = file_obj.read()
 
 file_obj.close()
 
-program = parse_code(source + "\n")
+#parse_tokens(source)
+#sys.exit()
 
+program_tree = parse_code(source)
+vm.execute_prog(program_tree)
+
+"""
 for defi in program["defs"]:
    print defi
 
@@ -25,4 +32,4 @@ for proc in program["procs"]:
    print "\n - %s" % (proc["name"])
 
    for instruct in proc["instructions"]:
-      print instruct
+      print instruct"""
