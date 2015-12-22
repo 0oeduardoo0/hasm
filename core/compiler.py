@@ -39,11 +39,11 @@ def p_instruc(p):
 
    instructions.append(instruc)
 
-def p_definitions(p):
+def p_headers(p):
    """headers : header headers
                   | empty"""
 
-def p_definition(p):
+def p_header(p):
    """header : point id operands point_comma"""
    
    header = {

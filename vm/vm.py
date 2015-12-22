@@ -1,56 +1,41 @@
 import sys
 
+from core import types
+
 # ---------------------------
 # Instruc set helpers
 
-def is_id_operand(op):
-   if op["type"] == "id":
-      return True
-
-   return False
-
-def is_array_pointer_operand(op):
-   if op["type"] == "array_pointer":
-      return True
-
-   return False
-
-def is_array_operand(op):
-   if op["type"] == "array":
-      return True
-
-   return False
-
-def is_string_operand(op):
-   if op["type"] == "string":
-      return True
-
-   return False
-
-def is_numeric_operand(op):
-   if op["type"] == "integer" or op["type"] == "float":
-      return True
-
-   return False
+def unlik_value_by_reference(op):
+   if types.is_numeric_operand(op):
+      if types.is_integer_operand(op):
+         return types.make_integer(op["value"])
+      else:
+         return types.make_float(op["value"])
+   else:
+      return types.make_string(op["value"])
 
 def operand_real_value(op):
-   if is_id_operand(op):
+
+   if not op:
+      return types.make_nil()
+
+   if types.is_id_operand(op):
       
       if reg_exists(op):
-         return reg_value(op, None)
+         return unlik_value_by_reference(reg_value(op, None))
 
       handle_error("registre '%s' dont exists" % (op["value"]))
-      return {"type":"nil","value":None}
+      return types.make_nil()
 
-   elif is_array_pointer_operand(op):
+   elif types.is_array_pointer_operand(op):
       
       if reg_exists(op):
 
          try:
          
-            r = reg_value(op, None)
+            r = unlik_value_by_reference(reg_value(op, None))
 
-            if not is_array_operand(r):
+            if not types.is_array_operand(r):
                handle_fatal_error("'%s' is not an array" % (op["value"]))
 
             r = r["value"][op["index"]]
@@ -58,16 +43,16 @@ def operand_real_value(op):
          except:
             
             handle_error("%s[%s] index out of range" % (op["value"], op["index"]))
-            return {"type":"nil","value":None}
+            return types.make_nil()
 
          return r
 
       handle_error("registre '%s' dont exists" % (op["value"]))
-      return {"type":"nil","value":None}
+      return types.make_nil()
 
    else:
 
-      return op
+      return unlik_value_by_reference(op)
 
 def reg_exists(reg):
    global regs
@@ -86,8 +71,15 @@ def reg_value(reg, mode):
    global regs
    
    if mode == None:
+
       return regs[reg["value"]]
+
    else:
+
+      if debug:
+         print ""
+         raw_input(" ~ %s << %s" % (reg["value"], mode))
+
       regs[reg["value"]] = mode
 
 def expects_2_operands(lo, ro):
@@ -103,7 +95,9 @@ def not_expects_operands(lo, ro):
       handle_fatal_error("instruction : not expects operands")
 
 def parse_instruct_args(args):
-   return [args["operands"][0], args["operands"][1]]
+   lo = args["operands"][0]
+   ro = args["operands"][1]
+   return [lo, ro]
 
 # ---------------------------
 
@@ -111,8 +105,6 @@ def parse_instruct_args(args):
 # Instruc set
 
 def aritmetic_operations_instruc(args, operation):
-   global regs
-
    lo, ro = parse_instruct_args(args)
 
    if operation == "inc" or operation == "dec":
@@ -120,12 +112,12 @@ def aritmetic_operations_instruc(args, operation):
    else:
       expects_2_operands(lo, ro)
 
-   if not is_id_operand(lo):
+   if not types.is_id_operand(lo):
       handle_fatal_error("%s : left operand must be an identifier" % (operation))
 
    real_lo = operand_real_value(lo)
 
-   if not is_numeric_operand(real_lo):
+   if not types.is_numeric_operand(real_lo):
       handle_fatal_error("%s : only works with numeric operands" % (operation))
 
    if operation == "inc":
@@ -133,10 +125,10 @@ def aritmetic_operations_instruc(args, operation):
    elif operation == "dec":
       real_lo["value"] -= 1
    else:
-      
+
       ro = operand_real_value(ro)
 
-      if not is_numeric_operand(ro):
+      if not types.is_numeric_operand(ro):
          handle_fatal_error("%s : only works with numeric operands" % (operation))
 
       if operation == "add":
@@ -183,7 +175,7 @@ def var_instruc(args):
 
    expects_2_operands(lo, ro)
 
-   if not is_id_operand(lo):
+   if not types.is_id_operand(lo):
       handle_fatal_error("var : left operand must be an identifier")
 
    ro = operand_real_value(ro)
@@ -195,7 +187,7 @@ def call_instruc(args):
 
    expects_1_operands(lo, ro)
 
-   if not is_id_operand(lo):
+   if not types.is_id_operand(lo):
       handle_fatal_error("var : left operand must be an identifier")
 
    execute_proc(lo["value"])
@@ -205,7 +197,7 @@ def mov_instruc(args):
 
    expects_2_operands(lo, ro)
 
-   if not is_id_operand(lo) and not is_array_pointer_operand(lo):
+   if not types.is_id_operand(lo) and not types.is_array_pointer_operand(lo):
       handle_fatal_error("mov : left operand must be a registre")
 
    if not reg_exists(lo):
@@ -213,7 +205,7 @@ def mov_instruc(args):
 
    ro = operand_real_value(ro)
 
-   if is_array_pointer_operand(lo):
+   if types.is_array_pointer_operand(lo):
 
       real_lo = reg_value(lo, None)
       real_lo["value"][lo["index"]] = ro
@@ -228,7 +220,7 @@ def push_instruc(args):
 
    expects_2_operands(lo, ro)
 
-   if not is_id_operand(lo):
+   if not types.is_id_operand(lo):
       handle_fatal_error("push : left operand must be a registre")
 
    if not reg_exists(lo):
@@ -236,7 +228,7 @@ def push_instruc(args):
 
    real_lo = operand_real_value(lo)
 
-   if not is_array_operand(real_lo):
+   if not types.is_array_operand(real_lo):
       handle_fatal_error("push : left operand must be an array")
 
    ro = operand_real_value(ro)
@@ -259,11 +251,16 @@ def out_instruc(args):
 
    lo = operand_real_value(lo)
 
-   if ro != None:
-      ro = operand_real_value(ro)
-      lo["value"] = lo["value"].replace("\\$", str(ro["value"]))
+   if types.is_string_operand(lo):
 
-   sys.stdout.write(lo["value"].replace("\\n","\n"))
+
+      lo["value"] = lo["value"].replace("\\n","\n")
+
+      if ro != None:
+         ro = operand_real_value(ro)
+         lo["value"] = lo["value"].replace("\\$", str(ro["value"]))
+
+   sys.stdout.write(str(lo["value"]))
    sys.stdout.flush()
 
 def inp_instruc(args):
@@ -271,7 +268,7 @@ def inp_instruc(args):
 
    expects_2_operands(lo, ro)
 
-   if not is_id_operand(lo) and not is_array_pointer_operand(lo):
+   if not types.is_id_operand(lo) and not types.is_array_pointer_operand(lo):
       handle_fatal_error("inp : left operand must be a registre")
 
    if not reg_exists(lo):
@@ -279,9 +276,9 @@ def inp_instruc(args):
 
    input = raw_input(ro["value"])
 
-   ro = {"type":"string", "value":input}
+   ro = types.make_string(input)
 
-   if is_array_pointer_operand(lo):
+   if types.is_array_pointer_operand(lo):
 
       real_lo = reg_value(lo, None)
       real_lo["value"][lo["index"]] = ro
@@ -290,6 +287,186 @@ def inp_instruc(args):
    else:
 
       reg_value(lo, ro)
+
+def cmp_instruc(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_2_operands(lo, ro)
+
+   lo = operand_real_value(lo)
+   ro = operand_real_value(ro)
+
+   if lo["value"] < ro["value"]:
+      r = types.make_integer(0)
+
+   elif lo["value"] == ro["value"]:
+      r = types.make_integer(1)
+
+   else:
+      r = types.make_integer(2)
+
+   regs["cmp_result"] = r
+
+def jb_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("jb : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] == 0:
+      execute_proc(lo["value"])
+
+def je_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("je : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] == 1:
+      execute_proc(lo["value"])
+
+def ja_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("ja : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] == 2:
+      execute_proc(lo["value"])
+
+def jd_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("jd : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] != 1:
+      execute_proc(lo["value"])
+
+def jbe_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("jbe : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] == 0 or cmp_result["value"] == 1:
+      execute_proc(lo["value"])
+
+def jae_instruct(args):
+   global regs
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   try:
+
+      cmp_result = regs["cmp_result"]
+
+   except:
+
+      handle_error("jae : cmp instruct must be executed before")
+      return
+
+   if cmp_result["value"] == 2 or cmp_result["value"] == 1:
+      execute_proc(lo["value"])
+
+def type_instruc(args):
+   lo, ro = parse_instruct_args(args)
+
+   expects_2_operands(lo, ro)
+
+   if not types.is_id_operand(lo) and not types.is_array_pointer_operand(lo):
+      handle_fatal_error("type : left operand must be a registre")
+
+   if not reg_exists(lo):
+      handle_fatal_error("type : left operand '%s' don't exists" % (lo["value"]))
+
+   type = ro["value"]
+   real_lo = operand_real_value(lo)
+
+   try:
+
+      if type == "integer":
+
+         new = types.make_integer(int(real_lo["value"]))
+
+      elif type == "float":
+
+         new = types.make_float(float(real_lo["value"]))
+
+      elif type == "string":
+
+         new = types.make_string(str(real_lo["value"]))
+
+      elif type == "nil":
+
+         new = types.make_nil()
+
+      else:
+
+         handle_fatal_error("type : Unknown type '%s'" % (type))
+         return
+
+   except:
+
+      handle_fatal_error("type : Invalid value for '%s'" % (type))
+      return
+
+   reg_value(lo, new)
+
 
 def ext_instruc(args):
    lo, ro = parse_instruct_args(args)
@@ -313,18 +490,64 @@ instruc_set = {
    , "div": div_instruc
    , "pow": pow_instruc
    , "sqr": sqr_instruc
+   , "cmp": cmp_instruc
+   , "jb" : jb_instruct
+   , "je" : je_instruct
+   , "ja" : ja_instruct
+   , "jd" : jd_instruct
+   , "jbe": jbe_instruct
+   , "jae": jae_instruct
    , "call": call_instruc
    , "push": push_instruc
+   , "type": type_instruc
+}
+
+# ----------------------------
+# Haders set
+
+def debug_header(args):
+   global debug
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   if not types.is_integer_operand(lo):
+      handle_fatal_error("debug : first operand must be an integer")
+
+   if lo["value"] == 1:
+      debug = True
+   else:
+      debug = False
+
+def start_header(args):
+   global main_proc
+
+   lo, ro = parse_instruct_args(args)
+
+   expects_1_operands(lo, ro)
+
+   if not types.is_id_operand(lo):
+      handle_fatal_error("start : first operand must be an identifier")
+
+   main_proc = lo["value"]
+
+header_set = {
+     "debug": debug_header
+   , "start": start_header
 }
 
 # ----------------------------
 
 lineno = 0
+debug  = False
+main_proc = "main"
 prog_tree = None
 regs = {
-     "fx": None
-   , "px": None
-   , "rx": None
+     "ax": types.make_nil()
+   , "bx": types.make_nil()
+   , "cx": types.make_nil()
+   , "dx": types.make_nil()
 }
 
 def handle_error(error):
@@ -338,12 +561,40 @@ def handle_fatal_error(error):
    print "Fatal: %s, on line %s" % (error, lineno)
    sys.exit()
 
-#def execute_header(header):
+def execute_header(header):
+   global lineno
+
+   lineno = header["lineno"]
+
+   try:
+
+      header_handle = header_set[header["name"]]
+
+   except:
+
+      handle_fatal_error("Unknown header '%s'" % (header["name"]))
+
+   header_handle(header)
 
 def execute_instruc(instruc):
    global lineno
 
    lineno = instruc["lineno"]
+
+   if debug:
+
+      print ""
+      print " ~ Registres"
+      print ""
+
+      for reg in regs:
+         print "   %s : %s" % (reg, regs[reg])
+
+      print ""
+      print " ~ Instruc %s at line %s" % (instruc["name"], lineno)
+      print ""
+      print "   - l operand: %s" % instruc["operands"][0]
+      raw_input("   - r operand: %s" % instruc["operands"][1])
 
    try:
 
@@ -357,25 +608,31 @@ def execute_instruc(instruc):
 
 def execute_proc(proc):
    global prog_tree
-   global lineno
    
+   if debug:
+
+      print ""
+      raw_input(" ~ Executing procedure %s " % proc)
+
    try:
 
       proc = prog_tree["procs"][proc]
 
    except:
 
-      handle_fatal_error("Undefined procedure '%s'" % (proc))
+      handle_fatal_error("Undefined procedure '%s'" % (proc))   
 
    for instruc in proc:
+
       execute_instruc(instruc)
 
 def execute_prog(pt):
    global prog_tree
+   global main_proc
 
    prog_tree = pt
 
-#   for header in prog_tree["headers"]:
-#      execute_header(header)
+   for header in prog_tree["headers"]:
+      execute_header(header)
 
-   execute_proc("main")
+   execute_proc(main_proc)

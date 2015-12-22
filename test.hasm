@@ -1,15 +1,24 @@
-pedir_nombre
+.debug 0;
+.start inicio;
+
+loop
 {
-   inp px, "Cual es tu nombre? ";
+   mov cx, ax;
+   mul cx, bx;
+   
+   out "\$ x ", ax;
+   out "\$ = ", bx;
+   out "\$ \n", cx;
+
+   inc bx;
+   cmp bx, 10;
+   jbe loop;
 }
 
-imprimir_saludo
+inicio
 {
-   out "Hola \$, mucho gusto! \n", px;
-}
-
-main
-{
-   call pedir_nombre;
-   call imprimir_saludo;
+   mov  bx, 0;
+   inp  ax, "numero: ";
+   type ax, integer;
+   call loop;
 }
